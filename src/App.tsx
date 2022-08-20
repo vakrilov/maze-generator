@@ -1,26 +1,72 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { FC, useEffect, useState } from "react";
+import cx from "classnames";
+import { CellInfo, maze, startGenerating } from "./maze-generator";
+
+import "./App.css";
+
+const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
+  cell,
+  row,
+  col,
+}) => {
+  return (
+    <div
+      className={cx("cell", cell.taken && "taken")}
+      style={{
+        gridRow: row + 1,
+        gridColumn: col + 1,
+      }}
+    >
+      {cell.taken && cell.next && (
+        <div
+          className="line"
+          style={{
+            "--rotate": Math.log2(cell.next!) * 90 + "deg",
+          }}
+        ></div>
+      )}
+      {cell.taken && cell.prev && (
+        <div
+          className="line"
+          style={{
+            "--rotate": Math.log2(cell.prev!) * 90 + 180 + "deg",
+          }}
+        ></div>
+      )}
+    </div>
+  );
+};
 
 function App() {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const increment = () => setStep((v) => v + 1);
+    startGenerating(increment);
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="container">
+        {maze.map((col, colIdx) => (
+          <>
+            {col.map((cell, rowIdx) => (
+              <Cell row={rowIdx} col={colIdx} cell={cell}></Cell>
+            ))}
+            <div className="break" />
+          </>
+        ))}
+      </div>
+      STEP: {step}
     </div>
   );
 }
 
 export default App;
+function generatePath(
+  arg0: { x: number; y: number },
+  arg1: { x: number; y: number },
+  down: any
+): any {
+  throw new Error("Function not implemented.");
+}
