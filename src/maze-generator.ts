@@ -24,16 +24,10 @@ export const maze: CellInfo[][] = new Array(N).fill(0).map(() =>
   })
 );
 
-const randomDirection = (): Direction => {
-  const exp = Math.floor(Math.random() * 4);
-  return Math.pow(2, exp);
-};
-
 const wait = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const isSolvable = (start: Point, end: Point): boolean => {
-  let queue: Point[] = [];
-  queue.push(start);
+  const queue: Point[] = [start];
 
   const visited: boolean[] = new Array(N * N).fill(false);
   const directions = [
@@ -98,7 +92,6 @@ const generatePath = async (
     maze[s.x][s.y].prev = prev;
     maze[s.x][s.y].next = Direction.down;
     maze[s.x][s.y].taken = true;
-    // rerender();
     return true;
   }
 

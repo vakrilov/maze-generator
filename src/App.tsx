@@ -63,10 +63,3 @@ function App() {
 }
 
 export default App;
-function generatePath(
-  arg0: { x: number; y: number },
-  arg1: { x: number; y: number },
-  down: any
-): any {
-  throw new Error("Function not implemented.");
-}
