@@ -1,8 +1,21 @@
 import React, { FC, useEffect, useState } from "react";
 import cx from "classnames";
-import { CellInfo, maze, startGenerating } from "./maze-generator";
+import {
+  CellInfo,
+  maze,
+  generateMaze,
+  Direction,
+} from "./maze-generator";
 
 import "./App.css";
+
+const directionToAngleMap = {
+  [Direction.up]: "0deg",
+  [Direction.right]: "90deg",
+  [Direction.down]: "180deg",
+  [Direction.left]: "270deg",
+};
+const directionToAngle = (d: Direction) => directionToAngleMap[d];
 
 const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
   cell,
@@ -17,22 +30,14 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
         gridColumn: col + 1,
       }}
     >
-      {cell.taken && cell.next && (
+      {cell.mainRoute.map((d) => (
         <div
           className="line"
           style={{
-            "--rotate": Math.log2(cell.next!) * 90 + "deg",
+            "--rotate": directionToAngle(d),
           }}
         ></div>
-      )}
-      {cell.taken && cell.prev && (
-        <div
-          className="line"
-          style={{
-            "--rotate": Math.log2(cell.prev!) * 90 + 180 + "deg",
-          }}
-        ></div>
-      )}
+      ))}
     </div>
   );
 };
@@ -42,7 +47,7 @@ function App() {
 
   useEffect(() => {
     const increment = () => setStep((v) => v + 1);
-    startGenerating(increment);
+    generateMaze(increment);
   }, []);
 
   return (

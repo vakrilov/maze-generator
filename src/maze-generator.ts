@@ -1,11 +1,19 @@
-const N = 31;
+const N = 15;
 
-enum Direction {
-  up = 1 << 0,
-  right = 1 << 1,
-  down = 1 << 2,
-  left = 1 << 3,
+export enum Direction {
+  up = -1,
+  down = 1,
+  right = 2,
+  left = -2,
 }
+
+const reverseDirectionMap = {
+  [Direction.up]: Direction.down,
+  [Direction.right]: Direction.left,
+  [Direction.down]: Direction.up,
+  [Direction.left]: Direction.right,
+};
+export const reverse = (d: Direction) => reverseDirectionMap[d];
 
 type Point = {
   x: number;
@@ -14,13 +22,12 @@ type Point = {
 
 export type CellInfo = {
   taken?: boolean;
-  next?: Direction;
-  prev?: Direction;
+  mainRoute: Direction[];
 };
 
 export const maze: CellInfo[][] = new Array(N).fill(0).map(() =>
   new Array(N).fill(0).map(() => {
-    return {};
+    return { mainRoute: [] };
   })
 );
 
@@ -64,10 +71,10 @@ function shuffle<T>(array: T[]): T[] {
 
 const goInDirection = (p: Point, d: Direction) => {
   const res = { ...p };
-  res.y -= (d >> 0) % 2;
-  res.x += (d >> 1) % 2;
-  res.y += (d >> 2) % 2;
-  res.x -= (d >> 3) % 2;
+  res.y += d % 2;
+  if (Math.abs(d) > 1) {
+    res.x += (d >> 1) % 2;
+  }
   return res;
 };
 
@@ -89,8 +96,7 @@ const generatePath = async (
 
   if (s.x === e.x && s.y === e.y) {
     console.log("FOUND", e);
-    maze[s.x][s.y].prev = prev;
-    maze[s.x][s.y].next = Direction.down;
+    maze[s.x][s.y].mainRoute = [reverse(prev), Direction.down];
     maze[s.x][s.y].taken = true;
     return true;
   }
@@ -111,11 +117,9 @@ const generatePath = async (
   ]);
 
   maze[s.x][s.y].taken = true;
-  maze[s.x][s.y].prev = prev;
   for (const next of choices) {
     console.log(Direction[next]);
-
-    maze[s.x][s.y].next = next;
+    maze[s.x][s.y].mainRoute = [reverse(prev), next];
     const found = await generatePath(goInDirection(s, next), e, next, rerender);
     if (found) {
       return true;
@@ -123,15 +127,17 @@ const generatePath = async (
   }
   console.log("back");
   maze[s.x][s.y].taken = false;
-  maze[s.x][s.y].next = undefined;
+  maze[s.x][s.y].mainRoute = [];
   return false;
 };
 
-export const startGenerating = (rerender: () => void) => {
-  generatePath(
-    { x: Math.floor(N / 2), y: 0 },
-    { x: Math.floor(N / 2), y: N - 1 },
-    Direction.down,
-    rerender
-  );
+const generateFakeRoutes = () => {};
+
+export const generateMaze = (rerender: () => void) => {
+  const start = { x: Math.floor(N / 2), y: 0 };
+  const end = { x: Math.floor(N / 2), y: N - 1 };
+
+  generatePath(start, end, Direction.down, rerender);
+
+  generateFakeRoutes();
 };
