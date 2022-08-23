@@ -1,13 +1,9 @@
 import React, { FC, useEffect, useState } from "react";
 import cx from "classnames";
-import {
-  CellInfo,
-  maze,
-  generateMaze,
-  Direction,
-} from "./maze-generator";
+import { CellInfo, maze, generateMaze, Direction } from "./maze-generator";
 
 import "./App.css";
+import { convertToObject } from "typescript";
 
 const directionToAngleMap = {
   [Direction.up]: "0deg",
@@ -30,8 +26,9 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
         gridColumn: col + 1,
       }}
     >
-      {cell.mainRoute.map((d) => (
+      {cell.mainRoute.map((d, i) => (
         <div
+          key={i}
           className="line"
           style={{
             "--rotate": directionToAngle(d),
@@ -53,14 +50,16 @@ function App() {
   return (
     <div className="App">
       <div className="container">
-        {maze.map((col, colIdx) => (
-          <>
-            {col.map((cell, rowIdx) => (
-              <Cell row={rowIdx} col={colIdx} cell={cell}></Cell>
-            ))}
-            <div className="break" />
-          </>
-        ))}
+        {maze.map((col, colIdx) =>
+          col.map((cell, rowIdx) => (
+            <Cell
+              key={colIdx + ", " + rowIdx}
+              row={rowIdx}
+              col={colIdx}
+              cell={cell}
+            ></Cell>
+          ))
+        )}
       </div>
       STEP: {step}
     </div>

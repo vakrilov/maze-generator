@@ -118,7 +118,7 @@ const generatePath = async (
 
   maze[s.x][s.y].taken = true;
   for (const next of choices) {
-    console.log(Direction[next]);
+    // console.log(Direction[next]);
     maze[s.x][s.y].mainRoute = [reverse(prev), next];
     const found = await generatePath(goInDirection(s, next), e, next, rerender);
     if (found) {
@@ -131,13 +131,19 @@ const generatePath = async (
   return false;
 };
 
-const generateFakeRoutes = () => {};
+const generateFakeRoutes = (s: Point, e: Point, rerender: () => void) => {
+  let c = { ...s };
+  while (c.x !== e.x || c.y !== e.y) {
+    console.log("--->", c);
+    c = goInDirection(c, maze[c.x][c.y].mainRoute[1]);
+  }
+};
 
-export const generateMaze = (rerender: () => void) => {
+export const generateMaze = async (rerender: () => void) => {
   const start = { x: Math.floor(N / 2), y: 0 };
   const end = { x: Math.floor(N / 2), y: N - 1 };
 
-  generatePath(start, end, Direction.down, rerender);
+  await generatePath(start, end, Direction.down, rerender);
 
-  generateFakeRoutes();
+  generateFakeRoutes(start, end, rerender);
 };

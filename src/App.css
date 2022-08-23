@@ -13,11 +13,6 @@
   grid-template-columns: auto;
 }
 
-.break {
-  flex-basis: 100%;
-  width: 0;
-}
-
 .cell {
   --w: 20px;
   width: var(--w);
