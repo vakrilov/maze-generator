@@ -25,14 +25,24 @@
   background-color: pink;
 }
 
-.line {
+.candidate {
+  background-color: lightblue;
+}
+
+.line,
+.line-fake {
   --rotate: 0deg;
   position: absolute;
   left: 50%;
   top: 0%;
   height: 50%;
   width: 2px;
-  background-color: blue;
   transform-origin: bottom;
   transform: translateX(-50%) rotate(var(--rotate));
+}
+.line {
+  background-color: blue;
+}
+.line-fake {
+  background-color: gray;
 }

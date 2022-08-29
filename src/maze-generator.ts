@@ -1,4 +1,4 @@
-const N = 15;
+const N = 25;
 
 export enum Direction {
   up = -1,
@@ -6,6 +6,12 @@ export enum Direction {
   right = 2,
   left = -2,
 }
+const Directions = [
+  Direction.up,
+  Direction.right,
+  Direction.down,
+  Direction.left,
+] as const;
 
 const reverseDirectionMap = {
   [Direction.up]: Direction.down,
@@ -23,11 +29,13 @@ type Point = {
 export type CellInfo = {
   taken?: boolean;
   mainRoute: Direction[];
+  candidate?: boolean;
+  fakeRoute: Direction[];
 };
 
 export const maze: CellInfo[][] = new Array(N).fill(0).map(() =>
   new Array(N).fill(0).map(() => {
-    return { mainRoute: [] };
+    return { mainRoute: [], fakeRoute: [] };
   })
 );
 
@@ -131,11 +139,39 @@ const generatePath = async (
   return false;
 };
 
-const generateFakeRoutes = (s: Point, e: Point, rerender: () => void) => {
-  let c = { ...s };
-  while (c.x !== e.x || c.y !== e.y) {
-    console.log("--->", c);
-    c = goInDirection(c, maze[c.x][c.y].mainRoute[1]);
+const generateFakeRoutes = async (s: Point, e: Point, rerender: () => void) => {
+  while (true) {
+    const candidates: [Point, Point, Direction][] = [];
+    maze.forEach((col, x) =>
+      col.forEach((cell, y) => {
+        if (cell.taken) {
+          const current = { x, y };
+          Directions.forEach((d) => {
+            const next = goInDirection(current, d);
+            if (isFree(next)) {
+              candidates.push([current, next, d]);
+            }
+          });
+        }
+      })
+    );
+
+    if (candidates.length === 0) {
+      return;
+    }
+
+    candidates.forEach(([_, p, __]) => (maze[p.x][p.y].candidate = true));
+
+    const arr = shuffle(candidates);
+
+    const [from, to, dir] = arr[0];
+    maze[from.x][from.y].fakeRoute.push(dir);
+    maze[to.x][to.y].fakeRoute.push(reverse(dir));
+    maze[to.x][to.y].taken = true;
+    maze[to.x][to.y].candidate = false;
+
+    rerender();
+    await wait(16);
   }
 };
 
@@ -145,5 +181,5 @@ export const generateMaze = async (rerender: () => void) => {
 
   await generatePath(start, end, Direction.down, rerender);
 
-  generateFakeRoutes(start, end, rerender);
+  await generateFakeRoutes(start, end, rerender);
 };

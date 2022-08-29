@@ -3,7 +3,6 @@ import cx from "classnames";
 import { CellInfo, maze, generateMaze, Direction } from "./maze-generator";
 
 import "./App.css";
-import { convertToObject } from "typescript";
 
 const directionToAngleMap = {
   [Direction.up]: "0deg",
@@ -20,7 +19,11 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
 }) => {
   return (
     <div
-      className={cx("cell", cell.taken && "taken")}
+      className={cx(
+        "cell",
+        cell.taken && "taken",
+        cell.candidate && "candidate"
+      )}
       style={{
         gridRow: row + 1,
         gridColumn: col + 1,
@@ -30,6 +33,15 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
         <div
           key={i}
           className="line"
+          style={{
+            "--rotate": directionToAngle(d),
+          }}
+        ></div>
+      ))}
+      {cell.fakeRoute.map((d, i) => (
+        <div
+          key={i}
+          className="line-fake"
           style={{
             "--rotate": directionToAngle(d),
           }}
