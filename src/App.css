@@ -1,32 +1,74 @@
-* {
+*,
+:after,
+:before {
   box-sizing: border-box;
 }
 .App {
   text-align: center;
 }
 
+#root {
+  --grid: 1px;
+  --wall-width: 5px;
+  --wall: var(--wall-width) solid black;
+  --cell-width: 40px;
+}
+
 .container {
   margin: 32px;
   display: grid;
   justify-content: center;
-  grid-template-rows: auto;
-  grid-template-columns: auto;
+  gap: var(--grid);
+  grid-auto-rows: var(--cell-width);
+  grid-auto-columns: var(--cell-width);
 }
 
 .cell {
-  --w: 20px;
-  width: var(--w);
-  height: var(--w);
-  border: 0.1px solid black;
+  outline: var(--grid) solid gray;
   position: relative;
 }
 
-.taken {
-  background-color: pink;
+.walls {
+  position: absolute;
+  background-color: black;
+  z-index: 1;
+
+  --addition: calc(var(--wall-width) + 2 * var(--grid));
 }
 
-.candidate {
-  background-color: lightblue;
+.up-border {
+  top: calc(-0.5 * var(--wall-width));
+  left: calc(-0.5 * var(--wall-width));
+
+  width: calc(100% + var(--wall-width));
+  height: var(--wall-width);
+}
+
+.down-border {
+  bottom: calc(-0.5 * var(--wall-width));
+  left: calc(-0.5 * var(--wall-width));
+
+  width: calc(100% + var(--wall-width));
+  height: var(--wall-width);
+}
+
+.left-border {
+  top: calc(-0.5 * var(--wall-width));
+  left: calc(-0.5 * var(--wall-width));
+
+  width: var(--wall-width);
+  height: calc(100% + var(--wall-width));
+}
+.right-border {
+  top: calc(-0.5 * var(--wall-width));
+  right: calc(-0.5 * var(--wall-width));
+
+  width: var(--wall-width);
+  height: calc(100% + var(--wall-width));
+}
+
+.taken {
+  /* background-color: pink; */
 }
 
 .line,
@@ -36,13 +78,17 @@
   left: 50%;
   top: 0%;
   height: 50%;
-  width: 2px;
+  width: 0px;
   transform-origin: bottom;
   transform: translateX(-50%) rotate(var(--rotate));
+  outline: 2px solid blue;
 }
+
 .line {
-  background-color: blue;
+  outline-color: blue;
+  z-index: 1;
 }
+
 .line-fake {
-  background-color: gray;
+  outline-color: gray;
 }

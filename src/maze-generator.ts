@@ -1,4 +1,4 @@
-const N = 25;
+const N = 15;
 
 export enum Direction {
   up = -1,
@@ -6,7 +6,7 @@ export enum Direction {
   right = 2,
   left = -2,
 }
-const Directions = [
+export const Directions = [
   Direction.up,
   Direction.right,
   Direction.down,

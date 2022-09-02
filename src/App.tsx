@@ -1,6 +1,12 @@
 import React, { FC, useEffect, useState } from "react";
 import cx from "classnames";
-import { CellInfo, maze, generateMaze, Direction } from "./maze-generator";
+import {
+  CellInfo,
+  maze,
+  generateMaze,
+  Direction,
+  Directions,
+} from "./maze-generator";
 
 import "./App.css";
 
@@ -17,6 +23,10 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
   row,
   col,
 }) => {
+  const borders = Directions.filter(
+    (d) => !cell.mainRoute.includes(d) && !cell.fakeRoute.includes(d)
+  );
+
   return (
     <div
       className={cx(
@@ -29,6 +39,11 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
         gridColumn: col + 1,
       }}
     >
+
+      {borders.map((d) => (
+        <div key={d} className={cx("walls", Direction[d] + "-border")} />
+      ))}
+
       {cell.mainRoute.map((d, i) => (
         <div
           key={i}
