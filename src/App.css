@@ -33,38 +33,41 @@
   background-color: black;
   z-index: 1;
 
-  --addition: calc(var(--wall-width) + 2 * var(--grid));
+  
+  --start: calc(-0.5 * var(--wall-width) - 0.5 * var(--grid));
+  --length-addition: calc(var(--wall-width) + var(--grid));
+  border-radius: var(--length-addition);
 }
 
 .up-border {
-  top: calc(-0.5 * var(--wall-width));
-  left: calc(-0.5 * var(--wall-width));
+  top: var(--start);
+  left: var(--start);
 
-  width: calc(100% + var(--wall-width));
+  width: calc(100% + var(--length-addition));
   height: var(--wall-width);
 }
 
 .down-border {
-  bottom: calc(-0.5 * var(--wall-width));
-  left: calc(-0.5 * var(--wall-width));
+  bottom: var(--start);
+  left: var(--start);
 
-  width: calc(100% + var(--wall-width));
+  width: calc(100% + var(--length-addition));
   height: var(--wall-width);
 }
 
 .left-border {
-  top: calc(-0.5 * var(--wall-width));
-  left: calc(-0.5 * var(--wall-width));
+  top: var(--start);
+  left: var(--start);
 
   width: var(--wall-width);
-  height: calc(100% + var(--wall-width));
+  height: calc(100% + var(--length-addition));
 }
 .right-border {
-  top: calc(-0.5 * var(--wall-width));
-  right: calc(-0.5 * var(--wall-width));
+  top: var(--start);
+  right: var(--start);
 
   width: var(--wall-width);
-  height: calc(100% + var(--wall-width));
+  height: calc(100% + var(--length-addition));
 }
 
 .taken {
