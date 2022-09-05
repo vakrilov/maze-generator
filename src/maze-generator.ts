@@ -1,5 +1,5 @@
 /* eslint-disable no-loop-func */
-const N = 9;
+const N = 15;
 export enum Direction {
   none = 0,
   up = 1 << 0,

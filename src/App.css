@@ -15,7 +15,6 @@
 }
 
 .container {
-  margin: 32px;
   display: grid;
   justify-content: center;
   gap: var(--grid);
@@ -72,7 +71,7 @@
 }
 
 .taken {
-  background-color: rgb(253, 209, 216);
+  background-color: rgb(255, 229, 234);
 }
 
 .candidate {
@@ -93,7 +92,7 @@
 }
 
 .line {
-  outline-color: greenyellow;
+  outline-color: rgb(71, 189, 71);
   z-index: 1;
 }
 
