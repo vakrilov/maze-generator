@@ -1,5 +1,5 @@
 /* eslint-disable no-loop-func */
-const N = 3;
+const N = 9;
 export enum Direction {
   none = 0,
   up = 1 << 0,
@@ -35,18 +35,7 @@ export type CellInfo = {
   fakeRoute: Direction;
 };
 
-export const maze: CellInfo[][] = new Array(N).fill(0).map(() =>
-  new Array(N).fill(0).map(() => {
-    return {
-      mainRoute: Direction.none,
-      fakeRoute: Direction.none,
-      taken: false,
-      candidate: false,
-    };
-  })
-);
-
-const isSolvable = (start: Point, end: Point): boolean => {
+const isSolvable = (maze: CellInfo[][], start: Point, end: Point): boolean => {
   const queue: Point[] = [start];
 
   const visited: boolean[] = new Array(N * N).fill(false);
@@ -60,7 +49,7 @@ const isSolvable = (start: Point, end: Point): boolean => {
       visited[current.x * N + current.y] = true;
       const candidates = Directions.map((dir) =>
         goInDirection(current, dir)
-      ).filter((p) => isFree(p) && !visited[p.x * N + p.y]);
+      ).filter((p) => isFree(maze, p) && !visited[p.x * N + p.y]);
       queue.push(...candidates);
     }
   }
@@ -85,12 +74,13 @@ const goInDirection = (p: Point, d: Direction) => {
   return res;
 };
 
-const isFree = ({ x, y }: Point) =>
+const isFree = (maze: CellInfo[][], { x, y }: Point) =>
   x >= 0 && y >= 0 && x < N && y < N && !maze[x][y].taken;
 
-const generatePath = (start: Point, end: Point, rerender: () => void) => {
+const generatePath = (maze: CellInfo[][], recordStep: () => void) => {
+  const end = { x: Math.floor(N / 2), y: N - 1 };
+  let current = { x: Math.floor(N / 2), y: 0 };
   let prev = Direction.down;
-  let current = start;
 
   while (current.x !== end.x || current.y !== end.y) {
     maze[current.x][current.y].taken = true;
@@ -101,22 +91,22 @@ const generatePath = (start: Point, end: Point, rerender: () => void) => {
     // Pick a valid direction that will leave the maze in solvable state
     const nextDirection = choices.find((d) => {
       const next = goInDirection(current, d);
-      return isFree(next) && isSolvable(next, end);
+      return isFree(maze, next) && isSolvable(maze, next, end);
     }) as Direction;
 
     maze[current.x][current.y].mainRoute = reverse(prev) | nextDirection;
     current = goInDirection(current, nextDirection);
     prev = nextDirection;
 
-    rerender();
+    recordStep();
   }
 
   maze[current.x][current.y].mainRoute = reverse(prev) | Direction.down;
   maze[current.x][current.y].taken = true;
-  rerender();
+  recordStep();
 };
 
-const generateFakeRoutes = async (rerender: () => void) => {
+const generateFakeRoutes = (maze: CellInfo[][], recordStep: () => void) => {
   const getCandidates = (): [Point, Point, Direction][] => {
     const result: [Point, Point, Direction][] = [];
     maze.forEach((col, x) =>
@@ -125,7 +115,7 @@ const generateFakeRoutes = async (rerender: () => void) => {
           const current = { x, y };
           Directions.forEach((d) => {
             const next = goInDirection(current, d);
-            if (isFree(next)) {
+            if (isFree(maze, next)) {
               maze[next.x][next.y].candidate = true;
               result.push([current, next, d]);
             }
@@ -149,19 +139,33 @@ const generateFakeRoutes = async (rerender: () => void) => {
     toCell.taken = true;
     toCell.candidate = false;
 
-    rerender();
+    recordStep();
     candidates = getCandidates();
   }
 };
 
-export const generateMaze = async (rerender: () => void) => {
+export const generateMaze = (): CellInfo[][][] => {
+  console.log("generating maze ...");
   console.time("generateMaze");
+  const snapshots: CellInfo[][][] = [];
 
-  const start = { x: Math.floor(N / 2), y: 0 };
-  const end = { x: Math.floor(N / 2), y: N - 1 };
+  const maze = new Array(N).fill(0).map(() =>
+    new Array(N).fill(0).map(() => ({
+      mainRoute: Direction.none,
+      fakeRoute: Direction.none,
+      taken: false,
+      candidate: false,
+    }))
+  );
 
-  generatePath(start, end, rerender);
-  generateFakeRoutes(rerender);
+  const recordStep = () => {
+    const snapshot = maze.map((col) => col.map((cell) => ({ ...cell })));
+    snapshots.push(snapshot);
+  };
+
+  generatePath(maze, recordStep);
+  generateFakeRoutes(maze, recordStep);
 
   console.timeEnd("generateMaze");
+  return snapshots;
 };

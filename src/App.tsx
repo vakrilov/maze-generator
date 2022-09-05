@@ -2,7 +2,6 @@ import React, { FC, useEffect, useState } from "react";
 import cx from "classnames";
 import {
   CellInfo,
-  maze,
   generateMaze,
   Direction,
   Directions,
@@ -67,17 +66,31 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
 };
 
 function App() {
+  const [snapshots] = useState(generateMaze);
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    const increment = () => setStep((v) => v + 1);
-    generateMaze(increment);
+    const timer = setInterval(() => {
+
+      setStep((s) => {
+        if (s < snapshots.length - 1) {
+          return s + 1;
+        } else {
+          clearTimeout(timer);
+          return s;
+        }
+      });
+    }, 10);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
     <div className="App">
       <div className="container">
-        {maze.map((col, colIdx) =>
+        {snapshots[step].map((col, colIdx) =>
           col.map((cell, rowIdx) => (
             <Cell
               key={colIdx + ", " + rowIdx}
@@ -88,7 +101,6 @@ function App() {
           ))
         )}
       </div>
-      STEP: {step}
     </div>
   );
 }
