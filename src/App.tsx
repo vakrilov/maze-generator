@@ -142,6 +142,7 @@ function App() {
           spacing={2}
           alignSelf="stretch"
           alignItems="center"
+          className="controls"
         >
           <h3>Steps: </h3>
           <Slider
@@ -160,7 +161,7 @@ function App() {
           </IconButton>
         </Stack>
 
-        <ToggleButtonGroup value={showPaths} onChange={pathsChange} exclusive>
+        <ToggleButtonGroup value={showPaths} onChange={pathsChange} className="controls" exclusive>
           <ToggleButton value="none" aria-label="show correct path">
             No Paths
           </ToggleButton>

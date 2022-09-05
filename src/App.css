@@ -33,7 +33,6 @@
   background-color: black;
   z-index: 1;
 
-  
   --start: calc(-0.5 * var(--wall-width) - 0.5 * var(--grid));
   --length-addition: calc(var(--wall-width) + var(--grid));
   border-radius: var(--length-addition);
@@ -75,7 +74,7 @@
 }
 
 .candidate {
-  background-color: rgb(201, 229, 239)
+  background-color: rgb(201, 229, 239);
 }
 
 .line,
@@ -98,4 +97,24 @@
 
 .line-fake {
   outline-color: gray;
+}
+
+@media print {
+  body {
+    print-color-adjust: exact;
+  }
+  
+  .cell {
+    outline: none;
+  }
+
+  .taken,
+  .candidate {
+    background-color: transparent;
+  }
+
+  h1,
+  .controls {
+    display: none !important;
+  }
 }
