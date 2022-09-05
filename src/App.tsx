@@ -20,7 +20,7 @@ const AutoplayInterval = 20;
 type ShowPaths = "none" | "main" | "all";
 
 function App() {
-  const [size, setSize] = useState(5);
+  const [size, setSize] = useState(15);
   const [snapshots, setSnapshots] = useState<Maze[]>();
   const [step, setStep] = useState(0);
   const [showPaths, setShowPaths] = React.useState<ShowPaths>("all");
@@ -84,12 +84,13 @@ function App() {
   }, [size]);
 
   return (
-    <Grid2 spacing={2} container margin={4}>
-      <Grid2 xs={12}>
+    <Grid2 spacing={2} container margin={4} columns={3}>
+      <Grid2 xs={3} lg={1}>
         <h1>Maze Generator</h1>
       </Grid2>
+      <Grid2 xs={0} lg={2}></Grid2>
 
-      <Grid2 xs={12} lg={4}>
+      <Grid2 xs={3} lg={1}>
         <Stack spacing={2} alignItems="center" className="controls">
           <ToggleButtonGroup
             value={size}
@@ -149,7 +150,7 @@ function App() {
         </Stack>
       </Grid2>
 
-      <Grid2 xs={12} lg={8}>
+      <Grid2 xs={3} lg={2}>
         <div className="container">
           {snapshots &&
             snapshots[step].map((col, colIdx) =>

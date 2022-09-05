@@ -11,6 +11,9 @@
   --cell-width: 32px;
 }
 
+h1 {
+  text-align: center;
+}
 .container {
   display: grid;
   justify-content: center;
