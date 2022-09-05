@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import cx from "classnames";
 import {
   CellInfo,
@@ -9,7 +9,11 @@ import {
 
 import "./App.css";
 import { Slider, Stack, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { IconButton } from "@mui/material";
+import PlayIcon from "@mui/icons-material/PlayCircle";
+import PauseIcon from "@mui/icons-material/PauseCircle";
 
+const AutoplayInterval = 33;
 const directionToAngleMap = {
   [Direction.up]: "0deg",
   [Direction.right]: "90deg",
@@ -76,25 +80,28 @@ function App() {
   const [snapshots] = useState(generateMaze);
   const [step, setStep] = useState(0);
   const [showPaths, setShowPaths] = React.useState<ShowPaths>("all");
+  const [autoplay, setAutoplay] = useState(true);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setStep((s) => {
-        if (s < snapshots.length - 1) {
-          return s + 1;
-        } else {
-          clearTimeout(timer);
-          return s;
-        }
-      });
-    }, 30);
+    if (step >= snapshots.length - 1) {
+      setAutoplay(false);
+    }
+
+    if (!autoplay || step >= snapshots.length - 1) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setStep(step + 1);
+    }, AutoplayInterval);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [snapshots.length]);
+  }, [snapshots.length, step, autoplay]);
 
   const stepChange = (event: Event, newValue: number | number[]) => {
+    setAutoplay(false);
     setStep(newValue as number);
   };
 
@@ -106,6 +113,10 @@ function App() {
       setShowPaths(newValue);
     }
   };
+
+  const toggleAutoplay = useCallback(() => {
+    setAutoplay(!autoplay);
+  }, [autoplay]);
 
   return (
     <div className="App">
@@ -140,6 +151,13 @@ function App() {
             max={snapshots.length - 1}
             valueLabelDisplay="auto"
           />
+          <IconButton onClick={toggleAutoplay}>
+            {autoplay ? (
+              <PauseIcon fontSize="large" color="primary" />
+            ) : (
+              <PlayIcon fontSize="large" color="primary" />
+            )}
+          </IconButton>
         </Stack>
 
         <ToggleButtonGroup value={showPaths} onChange={pathsChange} exclusive>
