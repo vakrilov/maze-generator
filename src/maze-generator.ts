@@ -1,5 +1,5 @@
-const N = 15;
-const WAIT = 50;
+/* eslint-disable no-loop-func */
+const N = 9;
 export enum Direction {
   up = -1,
   down = 1,
@@ -28,8 +28,8 @@ type Point = {
 
 export type CellInfo = {
   taken?: boolean;
-  mainRoute: Direction[];
   candidate?: boolean;
+  mainRoute: Direction[];
   fakeRoute: Direction[];
 };
 
@@ -39,18 +39,10 @@ export const maze: CellInfo[][] = new Array(N).fill(0).map(() =>
   })
 );
 
-const wait = (ms: number) => new Promise((res) => setTimeout(res, ms));
-
 const isSolvable = (start: Point, end: Point): boolean => {
   const queue: Point[] = [start];
 
   const visited: boolean[] = new Array(N * N).fill(false);
-  const directions = [
-    Direction.up,
-    Direction.right,
-    Direction.down,
-    Direction.left,
-  ];
 
   while (queue.length && queue.length < N * N) {
     const current = queue.shift() as Point;
@@ -59,9 +51,9 @@ const isSolvable = (start: Point, end: Point): boolean => {
     }
     if (!visited[current.x * N + current.y]) {
       visited[current.x * N + current.y] = true;
-      const candidates = directions
-        .map((dir) => goInDirection(current, dir))
-        .filter((p) => isFree(p) && !visited[p.x * N + p.y]);
+      const candidates = Directions.map((dir) =>
+        goInDirection(current, dir)
+      ).filter((p) => isFree(p) && !visited[p.x * N + p.y]);
       queue.push(...candidates);
     }
   }
@@ -86,63 +78,40 @@ const goInDirection = (p: Point, d: Direction) => {
   return res;
 };
 
-const isFree = ({ x, y }: Point) => {
-  if (x < 0 || y < 0 || x >= N || y >= N) {
-    return false;
-  }
-  return !maze[x][y].taken;
-};
+const isFree = ({ x, y }: Point) =>
+  x >= 0 && y >= 0 && x < N && y < N && !maze[x][y].taken;
 
-const generatePath = async (
-  s: Point,
-  e: Point,
-  prev: Direction,
-  rerender: () => void
-): Promise<boolean> => {
+const generatePath = (start: Point, end: Point, rerender: () => void) => {
+  let prev = Direction.down;
+  let current = start;
 
-  if (s.x === e.x && s.y === e.y) {
-    console.log("FOUND", e);
-    maze[s.x][s.y].mainRoute = [reverse(prev), Direction.down];
-    maze[s.x][s.y].taken = true;
-    return true;
-  }
+  while (current.x !== end.x || current.y !== end.y) {
+    maze[current.x][current.y].taken = true;
 
-  if (!isFree(s)) {
-    return false;
-  }
+    // randomize direction
+    const choices = shuffle([...Directions]);
 
-  if (!isSolvable(s, e)) {
-    return false;
+    // Pick a valid direction that will leave the maze in solvable state
+    const nextDirection = choices.find((d) => {
+      const next = goInDirection(current, d);
+      return isFree(next) && isSolvable(next, end);
+    }) as Direction;
+
+    maze[current.x][current.y].mainRoute = [reverse(prev), nextDirection];
+    current = goInDirection(current, nextDirection);
+    prev = nextDirection;
+
+    rerender();
   }
 
-  await wait(WAIT);
+  maze[current.x][current.y].mainRoute = [reverse(prev), Direction.down];
+  maze[current.x][current.y].taken = true;
   rerender();
-
-  const choices = shuffle([
-    Direction.up,
-    Direction.right,
-    Direction.down,
-    Direction.left,
-  ]);
-
-  maze[s.x][s.y].taken = true;
-  for (const next of choices) {
-    // console.log(Direction[next]);
-    maze[s.x][s.y].mainRoute = [reverse(prev), next];
-    const found = await generatePath(goInDirection(s, next), e, next, rerender);
-    if (found) {
-      return true;
-    }
-  }
-  console.log("back");
-  maze[s.x][s.y].taken = false;
-  maze[s.x][s.y].mainRoute = [];
-  return false;
 };
 
-const generateFakeRoutes = async (s: Point, e: Point, rerender: () => void) => {
-  while (true) {
-    const candidates: [Point, Point, Direction][] = [];
+const generateFakeRoutes = async (rerender: () => void) => {
+  const getCandidates = (): [Point, Point, Direction][] => {
+    const result: [Point, Point, Direction][] = [];
     maze.forEach((col, x) =>
       col.forEach((cell, y) => {
         if (cell.taken) {
@@ -150,37 +119,42 @@ const generateFakeRoutes = async (s: Point, e: Point, rerender: () => void) => {
           Directions.forEach((d) => {
             const next = goInDirection(current, d);
             if (isFree(next)) {
-              candidates.push([current, next, d]);
+              maze[next.x][next.y].candidate = true;
+              result.push([current, next, d]);
             }
           });
         }
       })
     );
+    return result;
+  };
 
-    if (candidates.length === 0) {
-      return;
-    }
+  let candidates = getCandidates();
+  while (candidates.length) {
+    const [from, to, dir] =
+      candidates[Math.floor(Math.random() * candidates.length)];
 
-    candidates.forEach(([_, p, __]) => (maze[p.x][p.y].candidate = true));
+    const fromCell = maze[from.x][from.y];
+    fromCell.fakeRoute.push(dir);
 
-    const arr = shuffle(candidates);
-
-    const [from, to, dir] = arr[0];
-    maze[from.x][from.y].fakeRoute.push(dir);
-    maze[to.x][to.y].fakeRoute.push(reverse(dir));
-    maze[to.x][to.y].taken = true;
-    maze[to.x][to.y].candidate = false;
+    const toCell = maze[to.x][to.y];
+    toCell.fakeRoute.push(reverse(dir));
+    toCell.taken = true;
+    toCell.candidate = false;
 
     rerender();
-    await wait(WAIT);
+    candidates = getCandidates();
   }
 };
 
 export const generateMaze = async (rerender: () => void) => {
+  console.time("generateMaze");
+
   const start = { x: Math.floor(N / 2), y: 0 };
   const end = { x: Math.floor(N / 2), y: N - 1 };
 
-  await generatePath(start, end, Direction.down, rerender);
-
-  await generateFakeRoutes(start, end, rerender);
+  generatePath(start, end, rerender);
+  generateFakeRoutes(rerender);
+  
+  console.timeEnd("generateMaze");
 };
