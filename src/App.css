@@ -26,6 +26,7 @@
 .cell {
   outline: var(--grid) solid gray;
   position: relative;
+  transition: all 300ms linear;
 }
 
 .walls {
@@ -71,7 +72,11 @@
 }
 
 .taken {
-  /* background-color: pink; */
+  background-color: rgb(253, 209, 216);
+}
+
+.candidate {
+  background-color: rgb(201, 229, 239)
 }
 
 .line,
@@ -88,7 +93,7 @@
 }
 
 .line {
-  outline-color: blue;
+  outline-color: greenyellow;
   z-index: 1;
 }
 

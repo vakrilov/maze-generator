@@ -1,5 +1,5 @@
 const N = 15;
-
+const WAIT = 50;
 export enum Direction {
   up = -1,
   down = 1,
@@ -99,8 +99,6 @@ const generatePath = async (
   prev: Direction,
   rerender: () => void
 ): Promise<boolean> => {
-  await wait(16);
-  rerender();
 
   if (s.x === e.x && s.y === e.y) {
     console.log("FOUND", e);
@@ -116,6 +114,9 @@ const generatePath = async (
   if (!isSolvable(s, e)) {
     return false;
   }
+
+  await wait(WAIT);
+  rerender();
 
   const choices = shuffle([
     Direction.up,
@@ -171,7 +172,7 @@ const generateFakeRoutes = async (s: Point, e: Point, rerender: () => void) => {
     maze[to.x][to.y].candidate = false;
 
     rerender();
-    await wait(16);
+    await wait(WAIT);
   }
 };
 

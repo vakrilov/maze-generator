@@ -40,7 +40,7 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
       }}
     >
 
-      {borders.map((d) => (
+      {cell.taken && borders.map((d) => (
         <div key={d} className={cx("walls", Direction[d] + "-border")} />
       ))}
 
