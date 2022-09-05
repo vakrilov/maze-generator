@@ -71,7 +71,7 @@ function App() {
   );
 
   const toggleAutoplay = useCallback(() => {
-    if (snapshots && snapshots[0].length === step) {
+    if (snapshots && snapshots.length - 1 === step) {
       setStep(0);
     }
     setAutoplay(!autoplay);
@@ -82,6 +82,16 @@ function App() {
     setAutoplay(true);
     setSnapshots(generateMaze(size));
   }, [size]);
+
+  const print = useCallback(() => {
+    if (snapshots) {
+      setShowPaths("none");
+      setStep(snapshots.length - 1);
+      setTimeout(() => {
+        window.print();
+      }, 20);
+    }
+  }, [snapshots]);
 
   return (
     <Grid2 spacing={2} container margin={4} columns={3}>
@@ -145,6 +155,10 @@ function App() {
                   All Paths
                 </ToggleButton>
               </ToggleButtonGroup>
+
+              <Button variant="contained" onClick={print}>
+                print
+              </Button>
             </>
           )}
         </Stack>
