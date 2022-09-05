@@ -1,5 +1,5 @@
 /* eslint-disable no-loop-func */
-const N = 15;
+// const N = 21;
 export enum Direction {
   none = 0,
   up = 1 << 0,
@@ -36,6 +36,7 @@ export type CellInfo = {
 };
 
 const isSolvable = (maze: CellInfo[][], start: Point, end: Point): boolean => {
+  const N = maze.length;
   const queue: Point[] = [start];
 
   const visited: boolean[] = new Array(N * N).fill(false);
@@ -75,9 +76,10 @@ const goInDirection = (p: Point, d: Direction) => {
 };
 
 const isFree = (maze: CellInfo[][], { x, y }: Point) =>
-  x >= 0 && y >= 0 && x < N && y < N && !maze[x][y].taken;
+  x >= 0 && y >= 0 && x < maze.length && y < maze.length && !maze[x][y].taken;
 
 const generatePath = (maze: CellInfo[][], recordStep: () => void) => {
+  const N = maze.length;
   const end = { x: Math.floor(N / 2), y: N - 1 };
   let current = { x: Math.floor(N / 2), y: 0 };
   let prev = Direction.down;
@@ -144,7 +146,8 @@ const generateFakeRoutes = (maze: CellInfo[][], recordStep: () => void) => {
   }
 };
 
-export const generateMaze = (): CellInfo[][][] => {
+export type Maze = CellInfo[][];
+export const generateMaze = (N: number): Maze[] => {
   console.log("generating maze ...");
   console.time("generateMaze");
   const snapshots: CellInfo[][][] = [];
@@ -163,6 +166,7 @@ export const generateMaze = (): CellInfo[][][] => {
     snapshots.push(snapshot);
   };
 
+  recordStep();
   generatePath(maze, recordStep);
   generateFakeRoutes(maze, recordStep);
 

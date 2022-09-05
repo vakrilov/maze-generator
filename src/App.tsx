@@ -1,88 +1,35 @@
-import React, { FC, useCallback, useEffect, useState } from "react";
-import cx from "classnames";
-import {
-  CellInfo,
-  generateMaze,
-  Direction,
-  Directions,
-} from "./maze-generator";
+import React, { useCallback, useEffect, useState } from "react";
+import { generateMaze, Maze } from "./maze-generator";
+import MazeCell from "./MazeCell";
 
-import "./App.css";
-import { Slider, Stack, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import {
+  Button,
+  Divider,
+  Slider,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
+import Grid2 from "@mui/material/Unstable_Grid2"; // Grid version 2
 import { IconButton } from "@mui/material";
 import PlayIcon from "@mui/icons-material/PlayCircle";
 import PauseIcon from "@mui/icons-material/PauseCircle";
 
-const AutoplayInterval = 33;
-const directionToAngleMap = {
-  [Direction.up]: "0deg",
-  [Direction.right]: "90deg",
-  [Direction.down]: "180deg",
-  [Direction.left]: "270deg",
-};
-const directionToAngle = (d: Direction) => directionToAngleMap[d];
-
+import "./App.css";
+const AutoplayInterval = 20;
 type ShowPaths = "none" | "main" | "all";
 
-const Cell: FC<{
-  cell: CellInfo;
-  row: number;
-  col: number;
-  showPaths: ShowPaths;
-}> = ({ cell, row, col, showPaths }) => {
-  const borders = Directions.filter(
-    (d) => !(cell.mainRoute & d) && !(cell.fakeRoute & d)
-  );
-
-  return (
-    <div
-      className={cx(
-        "cell",
-        showPaths !== "none" && cell.taken && "taken",
-        showPaths !== "none" && cell.candidate && "candidate"
-      )}
-      style={{
-        gridRow: row + 1,
-        gridColumn: col + 1,
-      }}
-    >
-      {cell.taken &&
-        borders.map((d) => (
-          <div key={d} className={cx("walls", Direction[d] + "-border")} />
-        ))}
-
-      {showPaths === "all" &&
-        Directions.filter((d) => d & cell.fakeRoute).map((d, i) => (
-          <div
-            key={"fake" + d}
-            className="line-fake"
-            style={{
-              "--rotate": directionToAngle(d),
-            }}
-          ></div>
-        ))}
-
-      {(showPaths === "main" || showPaths === "all") &&
-        Directions.filter((d) => d & cell.mainRoute).map((d) => (
-          <div
-            key={"main" + d}
-            className="line"
-            style={{
-              "--rotate": directionToAngle(d),
-            }}
-          ></div>
-        ))}
-    </div>
-  );
-};
-
 function App() {
-  const [snapshots] = useState(generateMaze);
+  const [size, setSize] = useState(5);
+  const [snapshots, setSnapshots] = useState<Maze[]>();
   const [step, setStep] = useState(0);
   const [showPaths, setShowPaths] = React.useState<ShowPaths>("all");
   const [autoplay, setAutoplay] = useState(true);
 
   useEffect(() => {
+    if (!snapshots) {
+      return;
+    }
     if (step >= snapshots.length - 1) {
       setAutoplay(false);
     }
@@ -98,82 +45,129 @@ function App() {
     return () => {
       clearTimeout(timer);
     };
-  }, [snapshots.length, step, autoplay]);
+  }, [snapshots, step, autoplay]);
 
-  const stepChange = (event: Event, newValue: number | number[]) => {
+  const stepChange = useCallback((_: Event, newValue: number | number[]) => {
     setAutoplay(false);
     setStep(newValue as number);
-  };
+  }, []);
 
-  const pathsChange = (
-    event: React.MouseEvent<HTMLElement>,
-    newValue: ShowPaths | null
-  ) => {
-    if (newValue) {
-      setShowPaths(newValue);
-    }
-  };
+  const pathsChange = useCallback(
+    (_: React.MouseEvent, newValue: ShowPaths | null) => {
+      if (newValue) {
+        setShowPaths(newValue);
+      }
+    },
+    []
+  );
+
+  const sizeChange = useCallback(
+    (_: React.MouseEvent, newValue: number | null) => {
+      if (newValue) {
+        setSize(newValue);
+      }
+    },
+    []
+  );
 
   const toggleAutoplay = useCallback(() => {
+    if (snapshots && snapshots[0].length === step) {
+      setStep(0);
+    }
     setAutoplay(!autoplay);
-  }, [autoplay]);
+  }, [step, snapshots, autoplay]);
+
+  const generateMazeHandler = useCallback(() => {
+    setStep(0);
+    setAutoplay(true);
+    setSnapshots(generateMaze(size));
+  }, [size]);
 
   return (
-    <div className="App">
-      <Stack spacing={2} sx={{ mb: 1 }} alignItems="center" margin={10}>
+    <Grid2 spacing={2} container margin={4}>
+      <Grid2 xs={12}>
         <h1>Maze Generator</h1>
-        <div className="container">
-          {snapshots[step].map((col, colIdx) =>
-            col.map((cell, rowIdx) => {
-              return (
-                <Cell
-                  key={colIdx + ", " + rowIdx}
-                  row={rowIdx}
-                  col={colIdx}
-                  cell={cell}
-                  showPaths={showPaths}
-                ></Cell>
-              );
-            })
-          )}
-        </div>
-        <Stack
-          direction="row"
-          spacing={2}
-          alignSelf="stretch"
-          alignItems="center"
-          className="controls"
-        >
-          <h3>Steps: </h3>
-          <Slider
-            value={step}
-            onChange={stepChange}
-            min={0}
-            max={snapshots.length - 1}
-            valueLabelDisplay="auto"
-          />
-          <IconButton onClick={toggleAutoplay}>
-            {autoplay ? (
-              <PauseIcon fontSize="large" color="primary" />
-            ) : (
-              <PlayIcon fontSize="large" color="primary" />
-            )}
-          </IconButton>
-        </Stack>
+      </Grid2>
 
-        <ToggleButtonGroup value={showPaths} onChange={pathsChange} className="controls" exclusive>
-          <ToggleButton value="none" aria-label="show correct path">
-            No Paths
-          </ToggleButton>
-          <ToggleButton value="main" aria-label="show correct path">
-            Correct Path
-          </ToggleButton>
-          <ToggleButton value="all" aria-label="show all paths">
-            All Paths
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Stack>
-    </div>
+      <Grid2 xs={12} lg={4}>
+        <Stack spacing={2} alignItems="center" className="controls">
+          <ToggleButtonGroup
+            value={size}
+            onChange={sizeChange}
+            className="controls"
+            exclusive
+          >
+            <ToggleButton value={5}>5x5</ToggleButton>
+            <ToggleButton value={9}>9x9</ToggleButton>
+            <ToggleButton value={15}>15x15</ToggleButton>
+            <ToggleButton value={21}>21x21</ToggleButton>
+          </ToggleButtonGroup>
+
+          <Button variant="contained" onClick={generateMazeHandler}>
+            generate
+          </Button>
+          <Divider flexItem />
+          {snapshots && (
+            <>
+              <IconButton onClick={toggleAutoplay}>
+                {autoplay ? (
+                  <PauseIcon sx={{ fontSize: 80 }} color="primary" />
+                ) : (
+                  <PlayIcon sx={{ fontSize: 80 }} color="primary" />
+                )}
+              </IconButton>
+              <Slider
+                value={step}
+                onChange={stepChange}
+                min={0}
+                max={snapshots.length - 1}
+                valueLabelDisplay="auto"
+              />
+
+              <span>
+                Step: <b>{step}</b>{" "}
+              </span>
+
+              <ToggleButtonGroup
+                value={showPaths}
+                onChange={pathsChange}
+                className="controls"
+                exclusive
+              >
+                <ToggleButton value="none" aria-label="show correct path">
+                  No Paths
+                </ToggleButton>
+                <ToggleButton value="main" aria-label="show correct path">
+                  Correct Path
+                </ToggleButton>
+                <ToggleButton value="all" aria-label="show all paths">
+                  All Paths
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </>
+          )}
+        </Stack>
+      </Grid2>
+
+      <Grid2 xs={12} lg={8}>
+        <div className="container">
+          {snapshots &&
+            snapshots[step].map((col, colIdx) =>
+              col.map((cell, rowIdx) => {
+                return (
+                  <MazeCell
+                    key={colIdx + ", " + rowIdx}
+                    row={rowIdx}
+                    col={colIdx}
+                    cell={cell}
+                    showPaths={showPaths}
+                  ></MazeCell>
+                );
+              })
+            )}
+        </div>
+      </Grid2>
+    </Grid2>
   );
 }
 

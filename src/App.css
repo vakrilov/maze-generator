@@ -3,15 +3,12 @@
 :before {
   box-sizing: border-box;
 }
-.App {
-  text-align: center;
-}
 
 #root {
   --grid: 1px;
   --wall-width: 5px;
   --wall: var(--wall-width) solid black;
-  --cell-width: 40px;
+  --cell-width: 32px;
 }
 
 .container {
@@ -102,8 +99,9 @@
 @media print {
   body {
     print-color-adjust: exact;
+    max-width: 1199px;
   }
-  
+
   .cell {
     outline: none;
   }
