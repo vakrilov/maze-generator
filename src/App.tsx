@@ -92,7 +92,7 @@ function App() {
     return () => {
       clearTimeout(timer);
     };
-  }, []);
+  }, [snapshots.length]);
 
   const stepChange = (event: Event, newValue: number | number[]) => {
     setStep(newValue as number);
