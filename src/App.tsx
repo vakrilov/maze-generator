@@ -24,7 +24,7 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
   col,
 }) => {
   const borders = Directions.filter(
-    (d) => !cell.mainRoute.includes(d) && !cell.fakeRoute.includes(d)
+    (d) => !(cell.mainRoute & d) && !(cell.fakeRoute & d)
   );
 
   return (
@@ -39,23 +39,23 @@ const Cell: FC<{ cell: CellInfo; row: number; col: number }> = ({
         gridColumn: col + 1,
       }}
     >
+      {cell.taken &&
+        borders.map((d) => (
+          <div key={d} className={cx("walls", Direction[d] + "-border")} />
+        ))}
 
-      {cell.taken && borders.map((d) => (
-        <div key={d} className={cx("walls", Direction[d] + "-border")} />
-      ))}
-
-      {cell.mainRoute.map((d, i) => (
+      {Directions.filter((d) => d & cell.mainRoute).map((d) => (
         <div
-          key={i}
+          key={"main" + d}
           className="line"
           style={{
             "--rotate": directionToAngle(d),
           }}
         ></div>
       ))}
-      {cell.fakeRoute.map((d, i) => (
+      {Directions.filter((d) => d & cell.fakeRoute).map((d, i) => (
         <div
-          key={i}
+          key={"fake" + d}
           className="line-fake"
           style={{
             "--rotate": directionToAngle(d),

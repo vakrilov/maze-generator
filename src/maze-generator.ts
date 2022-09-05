@@ -1,11 +1,13 @@
 /* eslint-disable no-loop-func */
-const N = 9;
+const N = 3;
 export enum Direction {
-  up = -1,
-  down = 1,
-  right = 2,
-  left = -2,
+  none = 0,
+  up = 1 << 0,
+  down = 1 << 1,
+  right = 1 << 2,
+  left = 1 << 3,
 }
+
 export const Directions = [
   Direction.up,
   Direction.right,
@@ -27,15 +29,20 @@ type Point = {
 };
 
 export type CellInfo = {
-  taken?: boolean;
-  candidate?: boolean;
-  mainRoute: Direction[];
-  fakeRoute: Direction[];
+  taken: boolean;
+  candidate: boolean;
+  mainRoute: Direction;
+  fakeRoute: Direction;
 };
 
 export const maze: CellInfo[][] = new Array(N).fill(0).map(() =>
   new Array(N).fill(0).map(() => {
-    return { mainRoute: [], fakeRoute: [] };
+    return {
+      mainRoute: Direction.none,
+      fakeRoute: Direction.none,
+      taken: false,
+      candidate: false,
+    };
   })
 );
 
@@ -71,10 +78,10 @@ function shuffle<T>(array: T[]): T[] {
 
 const goInDirection = (p: Point, d: Direction) => {
   const res = { ...p };
-  res.y += d % 2;
-  if (Math.abs(d) > 1) {
-    res.x += (d >> 1) % 2;
-  }
+  res.y += d & Direction.down ? 1 : 0;
+  res.y += d & Direction.up ? -1 : 0;
+  res.x += d & Direction.right ? 1 : 0;
+  res.x += d & Direction.left ? -1 : 0;
   return res;
 };
 
@@ -97,14 +104,14 @@ const generatePath = (start: Point, end: Point, rerender: () => void) => {
       return isFree(next) && isSolvable(next, end);
     }) as Direction;
 
-    maze[current.x][current.y].mainRoute = [reverse(prev), nextDirection];
+    maze[current.x][current.y].mainRoute = reverse(prev) | nextDirection;
     current = goInDirection(current, nextDirection);
     prev = nextDirection;
 
     rerender();
   }
 
-  maze[current.x][current.y].mainRoute = [reverse(prev), Direction.down];
+  maze[current.x][current.y].mainRoute = reverse(prev) | Direction.down;
   maze[current.x][current.y].taken = true;
   rerender();
 };
@@ -135,10 +142,10 @@ const generateFakeRoutes = async (rerender: () => void) => {
       candidates[Math.floor(Math.random() * candidates.length)];
 
     const fromCell = maze[from.x][from.y];
-    fromCell.fakeRoute.push(dir);
+    fromCell.fakeRoute |= dir;
 
     const toCell = maze[to.x][to.y];
-    toCell.fakeRoute.push(reverse(dir));
+    toCell.fakeRoute |= reverse(dir);
     toCell.taken = true;
     toCell.candidate = false;
 
@@ -155,6 +162,6 @@ export const generateMaze = async (rerender: () => void) => {
 
   generatePath(start, end, rerender);
   generateFakeRoutes(rerender);
-  
+
   console.timeEnd("generateMaze");
 };
