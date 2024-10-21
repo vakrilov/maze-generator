@@ -112,8 +112,7 @@ function App() {
             <ToggleButton value={9}>9x9</ToggleButton>
             <ToggleButton value={15}>15x15</ToggleButton>
             <ToggleButton value={21}>21x21</ToggleButton>
-            <ToggleButton value={31}>31x31</ToggleButton>
-            <ToggleButton value={41}>41x41</ToggleButton>
+            <ToggleButton value={27}>27x27</ToggleButton>
           </ToggleButtonGroup>
 
           <Button variant="contained" onClick={generateMazeHandler}>
